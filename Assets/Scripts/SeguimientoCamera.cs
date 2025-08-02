@@ -2,48 +2,65 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform player;                // El jugador al que sigue la cámara
-public Vector3 offset = new Vector3(0f, 2f, -5f); // Ajusta esto según tu necesidad    public float rotationSpeed = 100f;      // Velocidad de rotación de la cámara con el ratón
-    public float rotationSpeed = 100f;      // Velocidad de rotación de la cámara con el ratón
-    public float followSpeed = 10f;         // Velocidad con la que la cámara sigue al jugador
- public float smoothSpeed = 0.125f;
-    private float yaw = 0f;                 // Rotación horizontal (eje Y)
-    private float pitch = 0f;               // Rotación vertical (eje X)
-private float yawSmooth = 0f; // Rotación horizontal suavizada
-private float pitchSmooth = 0f; // Rotación vertical suavizada
+    public Transform player;
+    public Vector3 offset = new Vector3(0f, 2f, -5f);
+    public float rotationSpeed = 300f;
+    public float followSpeed = 20f;
+    public float smoothSpeed = 0.2f;
+    public float minVerticalAngle = -30f;
+    public float maxVerticalAngle = 45f;
+    public float minDistance = 3f;
+    public float maxDistance = 10f;
+
+    private float yaw = 0f;
+    private float pitch = 0f;
+    private float yawSmooth = 0f;
+    private float pitchSmooth = 0f;
+    private float currentDistance;
 
     void Start()
     {
-        // Inicializamos la rotación para que siga la dirección inicial del jugador
         yaw = transform.eulerAngles.y;
         pitch = transform.eulerAngles.x;
+        currentDistance = offset.magnitude;
     }
 
     void LateUpdate()
     {
-       // Obtener la entrada del ratón para rotar la cámara alrededor del jugador
-    yaw += Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
-    pitch -= Input.GetAxis("Mouse Y") * rotationSpeed * Time.deltaTime;
+        if (player == null) return;
 
-    // Limitar el ángulo de la cámara verticalmente
-    pitch = Mathf.Clamp(pitch, -45f, 45f);
+        // Control de rotación con el ratón
+        if (Input.GetMouseButton(1)) // Botón derecho del ratón
+        {
+            yaw += Input.GetAxis("Mouse X") * rotationSpeed * Time.deltaTime;
+            pitch -= Input.GetAxis("Mouse Y") * rotationSpeed * Time.deltaTime;
+        }
 
-    // Suavizar la rotación
-    yawSmooth = Mathf.Lerp(yawSmooth, yaw, smoothSpeed);
-    pitchSmooth = Mathf.Lerp(pitchSmooth, pitch, smoothSpeed);
+        // Limitar ángulos de rotación
+        pitch = Mathf.Clamp(pitch, minVerticalAngle, maxVerticalAngle);
+        
+        // Control de zoom con la rueda del ratón
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        currentDistance = Mathf.Clamp(currentDistance - scroll * 5f, minDistance, maxDistance);
 
-    // Crear la rotación de la cámara basada en los valores suavizados
-    Quaternion rotation = Quaternion.Euler(pitchSmooth, yawSmooth, 0f);
+        // Suavizado de rotación
+        yawSmooth = Mathf.Lerp(yawSmooth, yaw, smoothSpeed);
+        pitchSmooth = Mathf.Lerp(pitchSmooth, pitch, smoothSpeed);
 
-    // Calcular la nueva posición de la cámara usando el offset y la rotación
-    Vector3 desiredPosition = player.position + rotation * offset;
+        // Calcular rotación y posición
+        Quaternion rotation = Quaternion.Euler(pitchSmooth, yawSmooth, 0f);
+        Vector3 desiredOffset = rotation * new Vector3(0f, offset.y, -currentDistance);
+        Vector3 desiredPosition = player.position + desiredOffset;
 
-    // Aplicar un movimiento suave para seguir al jugador
-    transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
+        // Detección de obstáculos
+        RaycastHit hit;
+        if (Physics.Linecast(player.position + Vector3.up * offset.y, desiredPosition, out hit))
+        {
+            desiredPosition = hit.point;
+        }
 
-    // Hacer que la cámara siempre mire al jugador
-    transform.LookAt(player.position + Vector3.up * offset.y);
+        // Aplicar posición y rotación
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, followSpeed * Time.deltaTime);
+        transform.LookAt(player.position + Vector3.up * offset.y);
+    }
 }
-}
-
-

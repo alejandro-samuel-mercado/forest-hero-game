@@ -11,14 +11,14 @@ public class ContainerController : MonoBehaviour
     public float liftSpeed = 5f; // Velocidad de elevación del helicóptero
     public float flySpeed = 5f; // Velocidad de movimiento horizontal del helicóptero
 
-    private float timer = 0f; // Contador de tiempo
+    private float timer = 180f; // Contador de tiempo
     private bool hasFlown = false; // Indica si el helicóptero ya ha volado
 
 
  void Update()
     {
         // Incrementar el contador de tiempo
-        timer += Time.deltaTime;
+        timer -= Time.deltaTime;
 
         // Calcular minutos y segundos
         int minutes = Mathf.FloorToInt(timer / 60);
@@ -28,7 +28,7 @@ public class ContainerController : MonoBehaviour
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
 
         // Comprobar si ha pasado 1 minuto
-        if (timer >= 60f && !hasFlown)
+        if (timer<= 0f && !hasFlown)
         {
             hasFlown = true; // Evitar que el helicóptero vuelva a volar
             StartCoroutine(FlyHelicopter());

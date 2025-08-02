@@ -1,83 +1,74 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 using UnityEngine;
 
 public class PlayerController3D : MonoBehaviour
-{public float speed = 5f;
+{
+    public float speed = 5f;
     public float runSpeed = 8f;
+    public float rotationSpeed = 10f;
+    public float groundCheckDistance = 0.2f;
+    public LayerMask groundLayer;
+
     private Rigidbody rb;
     private Animator animator;
-
     private Vector3 movement;
- public Transform cameraTransform;  // Transform de la cámara
+    private bool isGrounded;
+    private Transform cameraTransform;
+
     void Start()
     {
-        rb = GetComponent<Rigidbody>();  // Obtiene el componente Rigidbody
-        animator = GetComponent<Animator>();  // Obtiene el componente Animator
+        rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        cameraTransform = Camera.main.transform;
     }
 
     void Update()
     {
-        // Obtener entradas de teclado
+        // Verificar si está en el suelo
+        isGrounded = Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, groundCheckDistance, groundLayer);
+
+        // Obtener entradas
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
-  // Calcular dirección de movimiento en función de la cámara
-        Vector3 forward = cameraTransform.forward;
+
+        // Calcular dirección relativa a la cámara
+        Vector3 forward = Vector3.Scale(cameraTransform.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 right = cameraTransform.right;
 
-        // Ignorar la componente y (vertical) para que el personaje no intente moverse en el eje Y
-        forward.y = 0f;
-        right.y = 0f;
-           forward.Normalize();
-        right.Normalize();
-
-        // Crear vector de movimiento basado en la entrada del usuario
         movement = (forward * moveZ + right * moveX).normalized;
 
-        // Actualizar los parámetros del Animator
-        bool isMoving = movement.magnitude > 0;
-
+        // Actualizar animaciones
+        bool isMoving = movement.magnitude > 0.1f;
         animator.SetBool("isWalking", isMoving);
-        animator.SetFloat("moveX", moveX);
-        animator.SetFloat("moveZ", moveZ);
+        animator.SetBool("isRunning", Input.GetKey(KeyCode.RightShift) && isMoving);
+        animator.SetBool("isGrounded", isGrounded);
 
-        // Cambiar animaciones según el movimiento
-        if (movement.magnitude > 0)
+        if (isMoving)
         {
-            animator.SetBool("isWalking", isMoving);
             animator.SetFloat("moveX", moveX);
             animator.SetFloat("moveZ", moveZ);
-
-        
-        if (Input.GetKey(KeyCode.LeftShift) && isMoving)
-        {
-            animator.SetBool("isRunning", true);
         }
-        else
-        {
-            animator.SetBool("isRunning", false);
-        }
-  
-    }
     }
 
     void FixedUpdate()
     {
-        // Aplicar movimiento al Rigidbody
-        if (movement.magnitude > 0)
+        if (movement.magnitude > 0.1f)
         {
-            // Ajustar la velocidad dependiendo si está corriendo o caminando
-            float currentSpeed = animator.GetBool("isRunning") ? runSpeed : speed;
-         
-   Vector3 newPosition = rb.position + movement * currentSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(newPosition);
-            // Rotar el personaje en la dirección del movimiento
-            Quaternion newRotation = Quaternion.LookRotation(movement);
-            rb.rotation = Quaternion.Slerp(rb.rotation, newRotation, Time.fixedDeltaTime * 10f);
-        }
-        
-    }
+            // Calcular velocidad
+            float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : speed;
 
+            // Movimiento
+            Vector3 targetVelocity = movement * currentSpeed;
+            targetVelocity.y = rb.velocity.y;
+            rb.velocity = targetVelocity;
+
+            // Rotación suave hacia la dirección de movimiento
+            Quaternion targetRotation = Quaternion.LookRotation(movement);
+            rb.rotation = Quaternion.Slerp(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+        }
+        else
+        {
+            // Frenar si no hay movimiento
+            rb.velocity = new Vector3(0, rb.velocity.y, 0);
+        }
+    }
 }
