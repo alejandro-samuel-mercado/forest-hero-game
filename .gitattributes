@@ -1,6 +1,5 @@
 *.cs linguist-vendored
-*.cs linguist-language=C#
-* linguist-language=C#
+
 
 
 *.shader linguist-language=ShaderLab
