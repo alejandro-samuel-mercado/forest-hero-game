@@ -8,3 +8,6 @@
 *.xml linguist-vendored
 *.js linguist-vendored
 *.mat linguist-vendored
+*.nb linguist-vendored
+*.wl linguist-vendored
+*.m linguist-vendored
