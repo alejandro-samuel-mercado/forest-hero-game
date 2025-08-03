@@ -1,13 +1,18 @@
 *.cs linguist-vendored
-*.shader linguist-vendored
-*.cginc linguist-vendored
+
+
 *.compute linguist-vendored
-*.hlsl linguist-vendored
+
 *.glsl linguist-vendored
 *.json linguist-vendored
 *.xml linguist-vendored
 *.js linguist-vendored
 
+
+*.shader linguist-language=ShaderLab
+*.cginc linguist-language=HLSL
+*.compute linguist-language=HLSL
+*.hlsl linguist-language=HLSL
 
 
 *.mat linguist-vendored
