@@ -7,3 +7,4 @@
 *.json linguist-vendored
 *.xml linguist-vendored
 *.js linguist-vendored
+*.mat linguist-vendored
