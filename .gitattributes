@@ -1,19 +1,23 @@
 
 *.cs linguist-language=C#
+* linguist-language=C#
+
+
 *.shader linguist-language=ShaderLab
 *.cginc linguist-language=HLSL
 *.compute linguist-language=HLSL
 *.hlsl linguist-language=HLSL
-*.glsl linguist-language=GLSL
 
 
 *.mat linguist-vendored
 *.nb linguist-vendored
 *.wl linguist-vendored
 *.m linguist-vendored
+*.json linguist-vendored
+*.xml linguist-vendored
+
 
 *.unity linguist-vendored
 *.prefab linguist-vendored
 *.asset linguist-vendored
-*.meta linguist-vendored
 *.controller linguist-vendored
